@@ -1,0 +1,43 @@
+package junit;
+
+import java.util.concurrent.TimeUnit;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class Browser {
+	WebDriver driver;
+	@Before
+	public void setUp()
+	{
+	String name = "webdriver.chrome.driver";
+	String path = "F:\\Infosys\\Selenium\\Driver\\chromedriver.exe";
+	System.setProperty(name,path);
+	driver = new ChromeDriver();
+	driver.get("https://www.google.com/");
+	driver.manage().window().maximize();
+	//driver.manage().timeouts().pageLoadTimeout(5, TimeUnit.SECONDS);
+	}
+	
+	@Test
+	public void test()
+	{
+		String pageTitle = driver.getTitle();
+		System.out.println("Page title: " + pageTitle);
+		driver.findElement(By.xpath("/html/body")).sendKeys("facebook");
+		driver.findElement(By.xpath("//*[@id=\"gbwa\"]/div/a/svg")).isSelected();
+		driver.manage().timeouts().pageLoadTimeout(2, TimeUnit.SECONDS);
+		driver.findElement(By.xpath("//*[@id=\"yDmH0d\"]/c-wiz/div/div/c-wiz/div/div/ul[1]/li[4]/a/div/span")).click();
+	}
+	
+	@After
+	public void close()
+	{
+		//driver.close();
+		//driver.quit();
+	}
+}
