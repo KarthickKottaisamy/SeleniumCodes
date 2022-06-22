@@ -1,0 +1,181 @@
+package junit;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+//import org.testng.annotations.AfterTest;
+//import org.testng.annotations.BeforeTest;
+//import org.testng.annotations.Test;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.Select;
+
+public class PackAndGo {
+
+	private WebDriver driver;
+	public String url = "http://10.82.181.42/Automation/PackAndGo_v2/index.html";
+	static XSSFWorkbook workBook = null;
+	static XSSFSheet sheet = null;
+
+	String chrome_driver = "webdriver.chrome.driver";
+	String chrome_path = "D:\\chromedriver_win32 (2)\\chromedriver.exe";
+
+	// all selenium variables
+	By userName = By.id("usernameLogin");
+	By password = By.id("passwordLogin");
+	By loginBtn = By.xpath("//*[@id=\"login\"]");
+	By login = By.xpath("//*[@id=\"myNavbar\"]/ul/li[4]/a");
+	By fromDestination = By.xpath("//*[@id=\"fromDD\"]");
+	By toDestination = By.xpath("//*[@id=\"toDD\"]");
+	By searchBusBtn = By.xpath("//*[@id=\"searchBus\"]");
+	By chooseBusRadioBtn = By.xpath("//*[@id=\"radio3\"]");
+	By fromCity = By.xpath("//*[@id=\"fromDD2\"]");
+	By toCity = By.xpath("//*[@id=\"toDD2\"]");
+	By proceedBooking = By.id("book");
+	By noOfPassengers = By.id("counter");
+	By calculateBill = By.xpath("//*[@id=\"rowB6\"]/td/p/input");
+	By confirmBookingBtn = By.id("confirmBooking");
+	By BookingDetails = By.id("tableBooking");
+
+// all utilities
+	public WebDriver getDriver() {
+		return driver;
+	}
+
+	public WebDriver setDriver(WebDriver driver) {
+		return this.driver = driver;
+	}
+
+	public WebElement findElementByXpath(By param) {
+		return getDriver().findElement(param);
+	}
+
+	public WebElement findElementById(By param) {
+		return getDriver().findElement(param);
+	}
+
+	public Select setSelect(WebElement Element) {
+		return new Select(Element);
+	}
+
+	public int getRowCount() {
+		return sheet.getPhysicalNumberOfRows();
+	}
+
+	public void sleep(int duration) throws InterruptedException {
+		Thread.sleep(duration);
+	}
+
+	@SuppressWarnings("deprecation")
+	@Before
+	public void setup() {
+		System.setProperty(chrome_driver, chrome_path);
+		setDriver(new ChromeDriver());
+		getDriver().manage().window().maximize();
+		getDriver().get(url);
+		WebElement loginElement = findElementByXpath(login);
+		loginElement.click();
+		driver.manage().timeouts().implicitlyWait(5000, TimeUnit.MILLISECONDS); // implicit wait
+	}
+
+	@SuppressWarnings("deprecation")
+	@Test(priority = 1)
+	public void login() throws InterruptedException {
+		driver.manage().timeouts().implicitlyWait(50, TimeUnit.SECONDS);
+		findElementById(userName).sendKeys("pgGru");
+		findElementById(password).sendKeys("freezeray");
+//		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
+//		wait.until(ExpectedConditions.urlToBe("http://10.82.181.42/Automation/PackAndGo_v2/index.html")); // explicit working
+		sleep(10000);
+		findElementById(loginBtn).click();
+	}
+
+	@Test(priority = 2)
+	public void dropDownTest() throws InterruptedException {
+		WebElement from = findElementByXpath(fromDestination); // select bengaluru
+		Select dropDownFrom = setSelect(from);
+		dropDownFrom.selectByVisibleText("Bengaluru");
+
+		WebElement To = findElementByXpath(toDestination); // select Hyderabad & searchbus
+		Select dropDownTo = setSelect(To);
+		dropDownTo.selectByVisibleText("Hyderabad");
+		sleep(8000);
+		findElementByXpath(searchBusBtn).click();
+	}
+
+	@Test(priority = 3)
+	public void radioBtnTest() throws InterruptedException {
+		findElementByXpath(chooseBusRadioBtn).click(); // use xpath for radio locator
+		WebElement FromCity = findElementByXpath(fromCity);
+		Select dropDownFromCity = setSelect(FromCity);
+		dropDownFromCity.selectByIndex(3);
+
+		WebElement ToCity = findElementByXpath(toCity);
+		Select dropDownToCity = setSelect(ToCity);
+		dropDownToCity.selectByIndex(2);
+		sleep(8000);
+		findElementById(proceedBooking).click();
+	}
+
+	@Test(priority = 4)
+	public void confirmBooking() throws InterruptedException {
+		WebElement passesngers = findElementById(noOfPassengers);
+		passesngers.clear();
+		passesngers.sendKeys("5");
+		findElementByXpath(calculateBill).click();
+	}
+
+	@SuppressWarnings("deprecation")
+	@Test(priority = 5)
+	public void printWebTables() throws InterruptedException, IOException {
+		WebElement bookingTable = findElementById(BookingDetails);
+		List<WebElement> rows = bookingTable.findElements(By.tagName("tr"));
+
+		// Excel configs
+		File f = new File(
+				"C:\\Users\\prakash.r07\\eclipse-workspace\\SeleniumAdvanced\\Excel-files-output\\demo2.xlsx");
+		FileOutputStream fos = new FileOutputStream(f);
+		XSSFWorkbook workBook = new XSSFWorkbook();
+		XSSFSheet sheet;
+		XSSFRow Row;
+		XSSFCell cell;
+
+		for (WebElement row : rows) {
+			List<WebElement> colNames = row.findElements(By.tagName("th"));
+			List<WebElement> colValues = row.findElements(By.tagName("td"));
+
+			Row = sheet.createRow(colNames.size());
+			cell = Row.createCell(colNames.size());
+			for (int i = 0; i < colNames.size(); i++) {
+				System.out.println("" + colNames.get(i).getText() + " = " + colValues.get(i).getText());
+				cell.setCellValue(colNames.get(i).getText());
+
+			}
+		}
+		workBook.write(fos);
+		workBook.close();
+		sleep(8000);
+		findElementById(confirmBookingBtn).click();
+		System.out.println(getDriver().switchTo().alert().getText());
+		getDriver().switchTo().alert().accept();
+
+	}
+
+	@AfterTest
+	public void after() {
+		// getDriver().navigate().to(url);
+		// driver.close();
+	}
+}
